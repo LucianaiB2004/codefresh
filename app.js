@@ -37,6 +37,7 @@ async function postJson(path, body) {
 }
 const api = {
   async health() {
+    if (/\.github\.io$/.test(location.hostname)) return null; // Pages 静态站没有本地 /api
     try {
       const res = await fetch('./api/health', { cache: 'no-store', signal: AbortSignal.timeout(2500) });
       if (!res.ok) return null;
