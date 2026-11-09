@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>CodeFresh · AI 知识保鲜站｜教程保质期检测</title>
+  <meta name="description" content="粘贴一篇 AI 教程，CodeFresh 用元宝搜索与 GitHub 官方发布记录核验它是否还能用，并给出当前稳定版和官方更新入口。" />
+  <meta name="referrer" content="no-referrer" />
+  <link rel="icon" href="./assets/codefresh/codefresh-stamp.webp" type="image/webp" />
+  <link rel="stylesheet" href="./styles.css" />
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <svg width="0" height="0" class="sprite" aria-hidden="true">
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-radar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 12 19 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3 5.5c3-1.3 6-1.3 9 .6v13c-3-1.9-6-1.9-9-.6zM21 5.5c-3-1.3-6-1.3-9 .6v13c3-1.9 6-1.9 9-.6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-guide" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.1"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 24 24"><path d="M8 3v5M16 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.9 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5z"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M9.3 9.3a2.8 2.8 0 1 1 3.9 2.6c-.8.4-1.2 1-1.2 1.8v.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.3" fill="currentColor"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 11h6M9 15h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-clip" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.1"/><path d="M9 4.5h6v2.5H9z" fill="currentColor"/><path d="m8.5 13 2.5 2.5 4.5-5" fill="none" stroke="#3db86a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19 8a7.5 7.5 0 0 0-13.4.6M5 16a7.5 7.5 0 0 0 13.4-.6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><path d="M19.5 3.5V8H15M4.5 20.5V16H9" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/><path d="m3 12.5 9 5 9-5M3 16.5l9 5 9-5" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.2 7.5 9.5 4.3-1.3 7.5-4.9 7.5-9.5V6z" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/><path d="m8.8 12 2.2 2.2 4.2-4.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.1"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10.5" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="15.6" r="1.6" fill="currentColor"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="14" r="4.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="m11.3 10.8 8.2-8.2M16.5 5.5l2.5 2.5M14 8l2 2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-sprout" viewBox="0 0 24 24"><path d="M12 21v-8M12 13c0-4-3-6.5-8-6.5 0 4.5 3 6.5 8 6.5zM12 13c0-3.5 2.5-6 7-6 0 4-2.5 6-7 6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12z" fill="currentColor"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2.1"/><path d="M12 2.8v2.6M12 18.6v2.6M21.2 12h-2.6M5.4 12H2.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8M18.5 18.5l-1.8-1.8M7.3 7.3 5.5 5.5" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3.5 22 20H2z" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/><path d="M12 10v4.5" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><circle cx="12" cy="17.3" r="1.3" fill="currentColor"/></symbol>
+    <symbol id="i-flow" viewBox="0 0 24 24"><path d="M4 7h11M4 12h16M4 17h9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="18" cy="7" r="2" fill="currentColor"/><circle cx="16" cy="17" r="2" fill="currentColor"/></symbol>
+  </svg>
+
+  <div class="app" id="app">
+    <!-- ============ 侧栏 ============ -->
+    <aside class="sidebar" aria-label="CodeFresh 导航">
+      <a class="brand" href="#check" data-nav="check" aria-label="CodeFresh 首页">
+        <span class="brand-mark"><img src="./assets/codefresh/codefresh-stamp.webp" alt="" width="64" height="58" /><i class="waves" aria-hidden="true"></i></span>
+        <span class="brand-name">CodeFresh</span>
+        <span class="brand-tag">AI 知识保鲜站</span>
+      </a>
+      <nav class="nav" aria-label="主导航">
+        <button class="nav-item" data-nav="check" type="button"><svg><use href="#i-search"/></svg><span>教程体检</span></button>
+        <button class="nav-item" data-nav="radar" type="button"><svg><use href="#i-radar"/></svg><span>版本雷达</span></button>
+        <button class="nav-item" data-nav="explore" type="button"><svg><use href="#i-book"/></svg><span>发现新教程</span></button>
+        <button class="nav-item" data-nav="guide" type="button"><svg><use href="#i-guide"/></svg><span>使用指南</span></button>
+      </nav>
+      <div class="side-deco" aria-hidden="true"><img src="./assets/codefresh/sleepy-cat.webp" alt="" width="160" height="110" loading="lazy" /></div>
+      <button class="api-btn" type="button" data-open-settings>
+        <svg><use href="#i-plug"/></svg><span>API 设置</span><i class="dot" data-conn-dot></i>
+      </button>
+    </aside>
+
+    <!-- ============ 主区 ============ -->
+    <main class="main" id="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <a class="m-brand" href="#check" data-nav="check" aria-label="CodeFresh"><img src="./assets/codefresh/codefresh-stamp.webp" alt="" width="34" height="31" /><b>CodeFresh</b></a>
+          <span class="mode-chip" data-mode-chip>检测运行模式…</span>
+          <button class="conn-chip" type="button" data-open-settings data-conn-chip>未连接元宝搜索</button>
+        </div>
+        <div class="topbar-right">
+          <span class="partner" title="服务与来源：元宝搜索（检索）· CSDN（教程来源）"><img src="./assets/brand/partner-logo.png" alt="元宝搜索 | CSDN" width="155" height="23" /></span>
+          <span class="vsep" aria-hidden="true"></span>
+          <a class="icon-btn" href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener noreferrer" aria-label="OpenClaw 官方 GitHub 仓库" data-repo-link><svg><use href="#i-github"/></svg></a>
+          <button class="icon-btn" type="button" data-nav="guide" aria-label="使用指南"><svg><use href="#i-help"/></svg></button>
+        </div>
+      </header>
+
+      <!-- ===== 视图：教程体检 ===== -->
+      <section class="view" id="view-check" data-view="check" aria-labelledby="h-check">
+        <div class="hero card">
+          <div class="hero-copy">
+            <p class="eyebrow">CODEFRESH <i>/</i> STAY CURRENT</p>
+            <h1 id="h-check">你收藏的教程，<span class="hl">还能用吗</span>？</h1>
+            <p class="hero-sub">检测过期知识，直达最新版本。<span class="chev" aria-hidden="true">›››</span></p>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <span class="cloud c1"></span><span class="cloud c2"></span>
+            <img class="ha-mascot" src="./assets/codefresh/yuanbao-search-mascot.webp" alt="" />
+            <img class="ha-note" src="./assets/codefresh/csdn-code-note.webp" alt="" />
+            <span class="ha-arrow"></span>
+            <img class="ha-pc" src="./assets/codefresh/retro-refresh-computer.webp" alt="" />
+            <img class="ha-fresh" src="./assets/codefresh/fresh-sticker.webp" alt="" />
+            <img class="ha-glass" src="./assets/codefresh/hourglass.webp" alt="" />
+          </div>
+        </div>
+
+        <div class="grid-check">
+          <section class="card check-card" aria-labelledby="h-input">
+            <div class="card-head">
+              <h2 id="h-input"><svg class="h-ico"><use href="#i-clip"/></svg>给教程做个保质期体检<i class="spark" aria-hidden="true"></i></h2>
+              <span class="yb-chip"><img src="./assets/brand/yuanbao-icon.png" alt="" width="20" height="20" />元宝搜索 · 实时检索</span>
+            </div>
+            <div class="tabs" role="tablist" aria-label="输入方式">
+              <button role="tab" id="tab-url" aria-selected="true" aria-controls="check-form" data-input-tab="url" type="button"><svg><use href="#i-link"/></svg>粘贴链接</button>
+              <button role="tab" id="tab-text" aria-selected="false" aria-controls="check-form" data-input-tab="text" type="button"><svg><use href="#i-doc"/></svg>输入内容</button>
+            </div>
+            <form class="check-form" id="check-form" novalidate>
+              <label class="sr-only" for="check-url">教程链接</label>
+              <div class="field" data-field="url">
+                <svg><use href="#i-link"/></svg>
+                <input id="check-url" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="粘贴教程链接，例如 https://blog.csdn.net/…" />
+              </div>
+              <label class="sr-only" for="check-text">教程内容</label>
+              <div class="field field-text" data-field="text" hidden>
+                <textarea id="check-text" rows="2" maxlength="6000" spellcheck="false" placeholder="粘贴教程里的版本号、安装命令或关键步骤（越具体越准）"></textarea>
+              </div>
+              <button class="btn btn-primary" type="submit" data-check-btn>立即检测<svg><use href="#i-arrow"/></svg></button>
+            </form>
+            <div class="try-row">
+              <span>试一试：</span>
+              <button class="chip" type="button" data-sample="openclaw"><img src="./assets/codefresh/tutorial-robot.webp" alt="" />OpenClaw</button>
+              <button class="chip" type="button" data-sample="mcp"><img src="./assets/codefresh/mcp-cubes.webp" alt="" />MCP</button>
+              <button class="chip" type="button" data-sample="qwen"><img src="./assets/codefresh/qwen-chat-bubbles.webp" alt="" />Qwen Agent</button>
+              <small class="quota-note" data-quota-note>每次检测最多调用 1 次元宝搜索</small>
+            </div>
+          </section>
+
+          <section class="card radar-mini" aria-labelledby="h-radar-mini">
+            <div class="card-head">
+              <h2 id="h-radar-mini"><img class="h-img" src="./assets/codefresh/version-radar-dish.webp" alt="" />版本雷达<i class="spark" aria-hidden="true"></i></h2>
+              <button class="link-btn" type="button" data-nav="radar">全部动态<svg><use href="#i-chev"/></svg></button>
+            </div>
+            <div class="rm-body" data-radar-mini>
+              <div class="skeleton-line"></div><div class="skeleton-line short"></div>
+            </div>
+          </section>
+
+          <section class="card report-card" aria-labelledby="h-report" aria-live="polite">
+            <div data-report></div>
+          </section>
+
+          <section class="card csdn-card" aria-labelledby="h-csdn">
+            <div data-csdn-panel></div>
+          </section>
+        </div>
+      </section>
+
+      <!-- ===== 视图：版本雷达 ===== -->
+      <section class="view" id="view-radar" data-view="radar" aria-labelledby="h-radar" hidden>
+        <div class="hero card">
+          <div class="hero-copy">
+            <p class="eyebrow">VERSION RADAR <i>/</i> STAY AHEAD</p>
+            <h1 id="h-radar">AI 更新太快？我们<span class="hl">替你盯着</span>。</h1>
+            <p class="hero-sub">工具升级、教程失效、替代路径，一屏掌握。</p>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <span class="cloud c1"></span><span class="cloud c2"></span>
+            <img class="ha-mascot" src="./assets/codefresh/yuanbao-search-mascot.webp" alt="" />
+            <img class="ha-dish" src="./assets/codefresh/version-radar-dish.webp" alt="" />
+            <img class="ha-note" src="./assets/codefresh/csdn-code-note.webp" alt="" />
+            <img class="ha-pc" src="./assets/codefresh/retro-refresh-computer.webp" alt="" />
+          </div>
+        </div>
+        <div class="stats" data-radar-stats></div>
+        <div class="grid-radar">
+          <section class="card oc-card" aria-labelledby="h-oc">
+            <div class="card-head">
+              <h2 id="h-oc"><img class="h-img" src="./assets/codefresh/mcp-cubes.webp" alt="" />OpenClaw · 版本动态</h2>
+              <span class="gh-chip"><svg><use href="#i-github"/></svg>GitHub 官方发布记录</span>
+              <button class="link-btn ml-auto" type="button" data-refresh-releases><svg><use href="#i-refresh"/></svg>刷新</button>
+            </div>
+            <div class="oc-body" data-radar-main></div>
+          </section>
+          <div class="radar-side">
+            <section class="card impact-card" aria-labelledby="h-impact">
+              <div class="card-head">
+                <h2 id="h-impact"><img class="h-img" src="./assets/codefresh/version-radar-dish.webp" alt="" />教程影响范围</h2>
+                <small class="muted">本次会话检测结果</small>
+              </div>
+              <div data-impact></div>
+            </section>
+            <section class="card csdn-read" aria-labelledby="h-read">
+              <div class="card-head">
+                <h2 id="h-read"><img class="csdn-word" src="./assets/brand/csdn-wordmark.png" alt="CSDN" width="74" height="31" />延伸阅读</h2>
+                <small class="muted">元宝搜索 · 仅 CSDN 站内</small>
+              </div>
+              <div data-radar-read></div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 视图：发现新教程 ===== -->
+      <section class="view" id="view-explore" data-view="explore" aria-labelledby="h-explore" hidden>
+        <div class="hero card">
+          <div class="hero-copy">
+            <p class="eyebrow">EXPLORE <i>/</i> LEARN WHAT'S NEW</p>
+            <h1 id="h-explore">今天，学点<span class="hl">不过期的</span>。</h1>
+            <p class="hero-sub">从时效到来源，帮你找到现在值得学的 AI 教程。</p>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <span class="cloud c1"></span><span class="cloud c2"></span>
+            <img class="ha-mascot" src="./assets/codefresh/yuanbao-search-mascot.webp" alt="" />
+            <img class="ha-term" src="./assets/codefresh/terminal-workflow.webp" alt="" />
+            <img class="ha-pc" src="./assets/codefresh/retro-refresh-computer.webp" alt="" />
+            <img class="ha-glass" src="./assets/codefresh/hourglass.webp" alt="" />
+          </div>
+        </div>
+        <section class="card search-card" aria-label="搜索教程">
+          <form class="search-row" id="explore-form" role="search" novalidate>
+            <span class="yb-chip big"><img src="./assets/brand/yuanbao-icon.png" alt="" width="22" height="22" />元宝搜索</span>
+            <label class="sr-only" for="explore-q">搜索 AI 工具、概念或教程</label>
+            <div class="field grow"><svg><use href="#i-search"/></svg><input id="explore-q" type="search" maxlength="80" autocomplete="off" placeholder="搜索 AI 工具、概念或教程…" /></div>
+            <button class="btn btn-primary" type="submit" data-explore-btn>搜索新教程<svg><use href="#i-arrow"/></svg></button>
+          </form>
+          <div class="filter-row">
+            <div class="filters" role="radiogroup" aria-label="时间与类型">
+              <button class="fchip" role="radio" aria-checked="true" data-filter="all" type="button"><svg><use href="#i-layers"/></svg>全部</button>
+              <button class="fchip" role="radio" aria-checked="false" data-filter="recent" type="button"><svg><use href="#i-cal"/></svg>近 30 天</button>
+              <button class="fchip" role="radio" aria-checked="false" data-filter="new" type="button"><svg><use href="#i-bolt"/></svg>近 7 天</button>
+              <button class="fchip" role="radio" aria-checked="false" data-filter="official" type="button"><svg><use href="#i-shield"/></svg>官方文档</button>
+              <button class="fchip" role="radio" aria-checked="false" data-filter="beginner" type="button"><svg><use href="#i-book"/></svg>入门教程</button>
+            </div>
+            <label class="toggle"><input type="checkbox" data-csdn-only /><span class="tg"></span><img src="./assets/brand/csdn-wordmark.png" alt="" width="46" height="19" />专区</label>
+            <label class="sort"><span class="sr-only">排序</span>
+              <select data-sort><option value="relevance">按相关度</option><option value="date">按发布日期</option></select>
+            </label>
+          </div>
+        </section>
+        <div class="grid-explore">
+          <section class="card results-card" aria-labelledby="h-results" aria-live="polite">
+            <div data-results></div>
+          </section>
+          <div class="explore-side">
+            <section class="card tips-card" aria-labelledby="h-tips">
+              <div class="card-head">
+                <h2 id="h-tips"><svg class="h-ico"><use href="#i-sprout"/></svg>学习保鲜提示</h2>
+                <img class="tips-sticker" src="./assets/codefresh/fresh-sticker.webp" alt="" />
+              </div>
+              <ol class="tips">
+                <li><b>01</b><svg><use href="#i-cal"/></svg><div><strong>先看发布日期</strong><span>没有日期的结果会标「日期未知」</span></div></li>
+                <li><b>02</b><svg><use href="#i-layers"/></svg><div><strong>核对适用版本</strong><span>和你正在用的版本对得上再照做</span></div></li>
+                <li><b>03</b><svg><use href="#i-shield"/></svg><div><strong>优先官方来源</strong><span>官方文档与 Release 标注「官方」</span></div></li>
+              </ol>
+              <button class="btn btn-outline wide" type="button" data-nav="check"><svg><use href="#i-search"/></svg>检测一篇教程<svg><use href="#i-arrow"/></svg></button>
+            </section>
+            <section class="card yb-card">
+              <img src="./assets/brand/yuanbao-icon.png" alt="" width="38" height="38" />
+              <div><strong>元宝搜索 · 多源检索</strong><span data-explore-quota>每次搜索调用 1 次接口，不会边输入边请求</span></div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 视图：使用指南 ===== -->
+      <section class="view" id="view-guide" data-view="guide" aria-labelledby="h-guide" hidden>
+        <div class="hero card">
+          <div class="hero-copy">
+            <p class="eyebrow">GUIDE <i>/</i> HOW IT WORKS</p>
+            <h1 id="h-guide">三步，让旧教程<span class="hl">跟上新版本</span>。</h1>
+            <p class="hero-sub">AI 时代只要学得够慢，那就不用学了——所以先查清楚再学。</p>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <span class="cloud c1"></span><span class="cloud c2"></span>
+            <img class="ha-robot" src="./assets/codefresh/report-robot.webp" alt="" />
+            <img class="ha-pc" src="./assets/codefresh/retro-refresh-computer.webp" alt="" />
+            <img class="ha-fresh" src="./assets/codefresh/fresh-sticker.webp" alt="" />
+          </div>
+        </div>
+        <div class="grid-guide">
+          <section class="card step-card">
+            <span class="step-n">01</span>
+            <img src="./assets/codefresh/yuanbao-search-mascot.webp" alt="" class="step-img" />
+            <h2>连接元宝搜索</h2>
+            <p>「API 设置」里二选一：<b>服务 API Key</b>（推荐）或<b>腾讯云 SecretId + SecretKey</b>。点「测试并使用」会真实发起 1 次最小搜索，只有成功才显示「已连接」。</p>
+            <button class="btn btn-outline" type="button" data-open-settings><svg><use href="#i-plug"/></svg>打开 API 设置</button>
+          </section>
+          <section class="card step-card">
+            <span class="step-n">02</span>
+            <img src="./assets/codefresh/report-robot.webp" alt="" class="step-img" />
+            <h2>检测一篇教程</h2>
+            <p>粘贴链接，或直接粘贴教程里的<b>版本号 / 安装命令</b>（更准）。CodeFresh 比对 GitHub 官方 Release 与 Changelog，给出四种结论：仍可参考 / 建议复核 / 有明确过期证据 / 证据不足。</p>
+            <button class="btn btn-outline" type="button" data-nav="check"><svg><use href="#i-search"/></svg>去体检</button>
+          </section>
+          <section class="card step-card">
+            <span class="step-n">03</span>
+            <img src="./assets/codefresh/version-radar-dish.webp" alt="" class="step-img" />
+            <h2>追踪版本 · 发现教程</h2>
+            <p>版本雷达直接读取 <b>openclaw/openclaw</b> 官方发布记录，稳定版和 beta 分开显示；发现页用元宝搜索找近期教程，CSDN 标签只给真实来自 csdn.net 的结果。</p>
+            <button class="btn btn-outline" type="button" data-nav="radar"><svg><use href="#i-radar"/></svg>看版本雷达</button>
+          </section>
+          <section class="card mode-card">
+            <h2><svg class="h-ico"><use href="#i-flow"/></svg>两种运行模式</h2>
+            <div class="modes">
+              <div><strong>本地完整模式（推荐）</strong><code>npm start</code><span>打开 http://127.0.0.1:4173 ，教程检测、元宝搜索、版本雷达全部可用。</span><ul class="caps"><li class="y">元宝搜索（两种认证）</li><li class="y">教程体检 + 相关教程</li><li class="y">CSDN 专区检索</li><li class="y">GitHub 版本雷达</li></ul></div>
+              <div><strong>GitHub Pages 预览</strong><span>可看 UI、实时 GitHub 版本数据和示例报告。元宝搜索接口不允许浏览器跨域直连（实测 CORS 预检被拒），线上输入密钥不可用。</span><ul class="caps"><li class="n">元宝搜索</li><li class="y">GitHub 版本对比体检</li><li class="y">版本雷达 / Changelog</li><li class="y">示例报告（已标注）</li></ul></div>
+            </div>
+          </section>
+          <section class="card safe-card">
+            <h2><svg class="h-ico"><use href="#i-shield"/></svg>安全与诚实</h2>
+            <ul>
+              <li>密钥只存在本页内存，刷新即清空；不写 localStorage / Cookie / URL / 日志。</li>
+              <li>不伪造版本号、热度、阅读量或剩余额度；没有日期就显示「未知」。</li>
+              <li>示例报告始终标注「示例数据」。</li>
+            </ul>
+            <a class="btn btn-ghost" href="https://console.cloud.tencent.com/wsapi/activity" target="_blank" rel="noopener noreferrer">前往腾讯云查看剩余额度<svg><use href="#i-arrow"/></svg></a>
+          </section>
+        </div>
+      </section>
+
+      <footer class="strip">
+        <svg class="strip-ico"><use href="#i-sprout"/></svg>
+        <p>用 <mark class="m-yb">元宝搜索</mark> 实时检索公开资料，以 <mark class="m-gh">GitHub 官方发布</mark> 为准；<mark class="m-csdn">CSDN</mark> 标签只给真实来自 CSDN 的结果。</p>
+        <span class="mountains" aria-hidden="true"></span>
+      </footer>
+    </main>
+
+    <!-- 移动端底部导航 -->
+    <nav class="bottom-nav" aria-label="底部导航">
+      <button type="button" data-nav="check"><svg><use href="#i-search"/></svg><span>体检</span></button>
+      <button type="button" data-nav="radar"><svg><use href="#i-radar"/></svg><span>雷达</span></button>
+      <button type="button" data-nav="explore"><svg><use href="#i-book"/></svg><span>教程</span></button>
+      <button type="button" data-open-settings><svg><use href="#i-settings"/></svg><span>设置</span></button>
+    </nav>
+  </div>
+
+  <!-- ============ API 设置弹窗 ============ -->
+  <div class="modal-backdrop" data-modal hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="h-modal" tabindex="-1">
+      <button class="modal-close" type="button" data-close-modal aria-label="关闭"><svg><use href="#i-x"/></svg></button>
+      <header class="modal-head">
+        <svg class="mh-plug"><use href="#i-plug"/></svg>
+        <span class="vsep" aria-hidden="true"></span>
+        <img src="./assets/brand/yuanbao-icon.png" alt="" width="42" height="42" />
+        <div>
+          <h2 id="h-modal">连接元宝搜索</h2>
+          <p>两种认证方式，任选一种即可 <span class="info-chip"><svg><use href="#i-bolt"/></svg>每次「测试」会真实调用 1 次搜索额度</span></p>
+        </div>
+      </header>
+      <div class="pages-warn" data-pages-warn hidden>
+        <svg><use href="#i-warn"/></svg>
+        <p><b>当前是 GitHub Pages 静态预览。</b>已实测：元宝搜索接口的浏览器跨域预检（CORS）会被拒绝，所以这里不能直接用密钥搜索。请在本机运行 <code>npm start</code>，打开 http://127.0.0.1:4173 使用完整功能。</p>
+      </div>
+      <div class="auth-grid">
+        <section class="auth-card" data-auth="api-key">
+          <div class="auth-top">
+            <span class="auth-art"><img src="./assets/brand/yuanbao-icon.png" alt="" width="46" height="46" /><svg class="key"><use href="#i-key"/></svg></span>
+            <div><h3>服务 API Key</h3><span class="rec">推荐</span></div>
+          </div>
+          <p class="status" data-status="api-key">尚未填写</p>
+          <p class="auth-desc">一个密钥即可调用，最适合个人开发者快速接入。</p>
+          <label for="in-apikey">API Key</label>
+          <div class="pw-field"><input id="in-apikey" type="password" autocomplete="off" spellcheck="false" placeholder="粘贴服务 API Key" data-cred="apiKey" /><button type="button" class="eye" data-eye="in-apikey" aria-label="显示 / 隐藏 API Key"><svg><use href="#i-eye"/></svg></button></div>
+          <p class="hint"><svg><use href="#i-bolt"/></svg>只需填写一个服务密钥，Bearer 方式调用</p>
+          <p class="hint"><svg><use href="#i-doc"/></svg><a href="https://cloud.tencent.com/document/product/1806/130615" target="_blank" rel="noopener noreferrer">如何获取服务 API Key</a></p>
+          <dl class="auth-meta">
+            <div><dt>调用地址</dt><dd>api.wsa.cloud.tencent.com</dd></div>
+            <div><dt>鉴权方式</dt><dd>Bearer API Key</dd></div>
+            <div><dt>适合</dt><dd>个人开发者、快速试用</dd></div>
+          </dl>
+          <button class="btn btn-primary wide" type="button" data-test="api-key">测试并使用</button>
+        </section>
+        <section class="auth-card" data-auth="aksk">
+          <div class="auth-top">
+            <span class="auth-art lock"><svg><use href="#i-lock"/></svg></span>
+            <div><h3>腾讯云标准密钥</h3><span class="rec alt">SecretId + SecretKey</span></div>
+          </div>
+          <p class="status" data-status="aksk">尚未填写</p>
+          <p class="auth-desc">腾讯云 API 3.0 标准方式，适合已有云 API 密钥的账号。</p>
+          <label for="in-sid">SecretId</label>
+          <div class="pw-field"><input id="in-sid" type="password" autocomplete="off" spellcheck="false" placeholder="AKID…" data-cred="secretId" /><button type="button" class="eye" data-eye="in-sid" aria-label="显示 / 隐藏 SecretId"><svg><use href="#i-eye"/></svg></button></div>
+          <label for="in-skey">SecretKey</label>
+          <div class="pw-field"><input id="in-skey" type="password" autocomplete="off" spellcheck="false" placeholder="SecretKey" data-cred="secretKey" /><button type="button" class="eye" data-eye="in-skey" aria-label="显示 / 隐藏 SecretKey"><svg><use href="#i-eye"/></svg></button></div>
+          <p class="hint"><svg><use href="#i-shield"/></svg>本地服务用 TC3-HMAC-SHA256 签名，密钥不出本机</p>
+          <p class="hint"><svg><use href="#i-doc"/></svg><a href="https://console.cloud.tencent.com/cam/capi" target="_blank" rel="noopener noreferrer">腾讯云 API 密钥管理</a></p>
+          <button class="btn btn-soft wide" type="button" data-test="aksk">测试并使用</button>
+        </section>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" type="button" data-auto-detect>自动检测可用方式（A → B）</button>
+        <button class="btn btn-ghost" type="button" data-use-env hidden>使用本机环境变量</button>
+        <button class="btn btn-ghost danger" type="button" data-clear-creds>清除凭据 / 断开连接</button>
+      </div>
+      <footer class="modal-foot">
+        <span><svg><use href="#i-lock"/></svg><b>请勿将密钥上传 GitHub</b></span>
+        <span class="fsep" aria-hidden="true"></span>
+        <span><svg><use href="#i-help"/></svg>密钥只在内存，刷新即清空</span>
+        <span class="fsep" aria-hidden="true"></span>
+        <a href="https://console.cloud.tencent.com/wsapi/activity" target="_blank" rel="noopener noreferrer">查看剩余额度</a>
+        <button class="btn btn-small" type="button" data-close-modal>稍后设置</button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="toast" role="status" aria-live="polite" data-toast hidden></div>
+</body>
+</html>
