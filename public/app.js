@@ -4,6 +4,19 @@ import { createOpenClawClient, DOCS_INSTALL, RELEASES_PAGE } from './lib/opencla
 import { parseTutorialInput, buildCheckQuery, checkTutorial, DEMO_REPORT } from './lib/tutorial-check.mjs';
 import { buildDiscoverParams, processResults } from './lib/tutorial-discover.mjs';
 import { safeUrl, isAuthError } from './lib/providers/wsa-response.mjs';
+import { buildSearchBody, CONNECTION_TEST_QUERY } from './lib/providers/request.mjs';
+
+// 中转服务地址（GitHub Pages 构建时写入 config.js；本地模式不使用）
+function normalizeRelay(raw) {
+  if (typeof raw !== 'string' || !raw.trim()) return '';
+  try {
+    const u = new URL(raw.trim());
+    const loop = u.hostname === '127.0.0.1' || u.hostname === 'localhost';
+    if (u.protocol !== 'https:' && !(u.protocol === 'http:' && loop)) return '';
+    return u.toString().replace(/\/+$/, '');
+  } catch { return ''; }
+}
+const RELAY = normalizeRelay(globalThis.CODEFRESH_RELAY);
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -18,7 +31,7 @@ const fmtTime = (iso) => new Date(iso).toLocaleTimeString('zh-CN', { timeZone: T
 const shortId = (id) => (id ? `${String(id).slice(0, 8)}…` : '');
 
 const state = {
-  mode: 'detecting', // local | pages
+  mode: 'detecting', // local | pages（pages + RELAY 时通过中转服务调用元宝搜索）
   envCreds: { 'api-key': false, aksk: false },
   view: 'check',
   inputTab: 'url',
@@ -31,13 +44,38 @@ const state = {
 
 // ---------------- API 层 ----------------
 const gh = createOpenClawClient();
+const METHOD_NAME = { 'api-key': '服务 API Key', aksk: '腾讯云标准方式' };
+// 能否调用元宝搜索：本地模式，或 Pages 且配置了中转服务
+const canSearch = () => state.mode === 'local' || (state.mode === 'pages' && !!RELAY);
+const viaRelay = () => state.mode === 'pages' && !!RELAY;
+
+// 经中转服务调用：浏览器只构造 Query/Site/Freshness，签名在中转服务端完成；凭据只放在本次请求体里
+async function relaySearch(method, creds, params) {
+  let body;
+  try { body = buildSearchBody(params); } catch (e) { return { ok: false, code: e.code || 'InvalidParameter', message: e.message }; }
+  const payload = method === 'api-key'
+    ? { apiKey: creds?.apiKey || '', body }
+    : { secretId: creds?.secretId || '', secretKey: creds?.secretKey || '', body };
+  const path = method === 'api-key' ? '/api/wsa/search' : '/api/wsa/tc3';
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let r;
+    try {
+      const res = await fetch(RELAY + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer', signal: AbortSignal.timeout(20000) });
+      r = await res.json().catch(() => ({ ok: false, code: `HTTP${res.status}`, message: `中转服务返回 HTTP ${res.status}` }));
+    } catch (e) {
+      r = { ok: false, code: 'RelayUnreachable', message: e?.name === 'TimeoutError' ? '中转服务响应超时' : '无法连接中转服务，请稍后再试' };
+    }
+    if (!r.ok && r.code === 'RequestLimitExceeded' && attempt === 0) { await new Promise((ok) => setTimeout(ok, 1200)); continue; }
+    return r;
+  }
+}
 async function postJson(path, body) {
   const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), cache: 'no-store' });
   return res.json();
 }
 const api = {
   async health() {
-    if (/\.github\.io$/.test(location.hostname)) return null; // Pages 静态站没有本地 /api
+    if (RELAY || /\.github\.io$/.test(location.hostname)) return null; // Pages 构建（含中转配置）没有本地 /api
     try {
       const res = await fetch('./api/health', { cache: 'no-store', signal: AbortSignal.timeout(2500) });
       if (!res.ok) return null;
@@ -45,11 +83,18 @@ const api = {
       return j && j.mode === 'local' ? j : null;
     } catch { return null; }
   },
-  test(method, credentials) {
-    if (state.mode !== 'local') return Promise.resolve({ ok: false, code: 'PagesMode', message: 'GitHub Pages 预览无法调用元宝搜索（跨域被拒），请本地运行 npm start' });
+  async test(method, credentials) {
+    if (viaRelay()) {
+      const r = await relaySearch(method, credentials, { query: CONNECTION_TEST_QUERY });
+      return r.ok ? { ok: true, method, requestId: r.requestId, message: `已连接（${METHOD_NAME[method]} · 经中转）` } : { ok: false, method, code: r.code, message: r.message, requestId: r.requestId || null };
+    }
+    if (state.mode !== 'local') return { ok: false, code: 'PagesMode', message: 'GitHub Pages 预览无法调用元宝搜索（跨域被拒），请本地运行 npm start' };
     return postJson('./api/connection-test', { method, credentials });
   },
-  search(method, credentials, params) { return postJson('./api/search', { method, credentials, ...params }); },
+  search(method, credentials, params) {
+    if (viaRelay()) return relaySearch(method, credentials, params);
+    return postJson('./api/search', { method, credentials, ...params });
+  },
   async releases(force = false) {
     if (state.mode === 'local') { const r = await fetch(`./api/openclaw/releases${force ? '?force=1' : ''}`, { cache: 'no-store' }); return r.json(); }
     return gh.getReleases({ force });
@@ -88,7 +133,7 @@ function setView(v, { push = true } = {}) {
 }
 
 function requireSearch() {
-  if (state.mode === 'pages') { toast('GitHub Pages 预览不能调用元宝搜索：请在本机运行 npm start 使用完整功能'); openModal(); return false; }
+  if (!canSearch()) { toast('GitHub Pages 预览不能调用元宝搜索：请在本机运行 npm start 使用完整功能'); openModal(); return false; }
   if (!conn.active) { toast('先在「API 设置」里连接元宝搜索（任选一种方式）'); openModal(); return false; }
   return true;
 }
@@ -97,11 +142,11 @@ function requireSearch() {
 const STATUS_TEXT = { empty: '尚未填写', pending: '尚未测试', testing: '正在真实测试…', ok: '已连接', fail: '连接失败' };
 function renderConn(snap = conn.snapshot()) {
   const active = snap.active;
-  const label = active === 'api-key' ? '已连接（服务 API Key）' : active === 'aksk' ? '已连接（腾讯云标准方式）' : (state.mode === 'pages' ? '元宝搜索需本地运行' : '未连接元宝搜索');
+  const label = active === 'api-key' ? '已连接（服务 API Key）' : active === 'aksk' ? '已连接（腾讯云标准方式）' : (canSearch() ? '未连接元宝搜索' : '元宝搜索需本地运行');
   const chip = $('[data-conn-chip]');
   chip.textContent = label;
   chip.className = `conn-chip ${active ? 'ok' : 'off'}`;
-  $$('[data-conn-dot]').forEach((d) => { d.className = `dot ${active ? 'ok' : state.mode === 'pages' ? 'na' : ''}`; });
+  $$('[data-conn-dot]').forEach((d) => { d.className = `dot ${active ? 'ok' : !canSearch() ? 'na' : ''}`; });
   for (const m of ['api-key', 'aksk']) {
     const s = snap[m];
     const el = $(`[data-status="${m}"]`);
@@ -112,16 +157,16 @@ function renderConn(snap = conn.snapshot()) {
     el.className = `status ${s.status}`;
     $(`[data-auth="${m}"]`).classList.toggle('active', active === m);
     const btn = $(`[data-test="${m}"]`);
-    btn.disabled = state.mode !== 'local' || s.status === STATUS.TESTING;
+    btn.disabled = !canSearch() || s.status === STATUS.TESTING;
     btn.textContent = s.status === STATUS.TESTING ? '测试中…' : active === m ? '已在使用 · 重新测试' : s.status === STATUS.OK ? '切换为此方式' : '测试并使用';
   }
-  $('[data-auto-detect]').disabled = state.mode !== 'local' || !(snap['api-key'].configured && snap.aksk.configured);
+  $('[data-auto-detect]').disabled = !canSearch() || !(snap['api-key'].configured && snap.aksk.configured);
   renderQuotaNotes();
 }
 
 function renderQuotaNotes() {
   const n = $('[data-quota-note]');
-  n.textContent = state.mode === 'pages' ? 'Pages 预览：只比对 GitHub 官方 Release，不调用元宝搜索'
+  n.textContent = !canSearch() ? 'Pages 预览：只比对 GitHub 官方 Release，不调用元宝搜索'
     : conn.active ? '每次检测调用 1 次元宝搜索，会消耗额度' : '未连接元宝搜索时，只比对 GitHub 官方 Release';
 }
 
@@ -131,10 +176,24 @@ function openModal() {
   lastFocus = document.activeElement;
   $('[data-modal]').hidden = false;
   $('[data-pages-warn]').hidden = state.mode !== 'pages';
+  ['#in-apikey', '#in-sid', '#in-skey'].forEach((s) => { $(s).type = 'password'; }); // 每次打开都默认遮挡
   $('[data-use-env]').hidden = !(state.envCreds['api-key'] || state.envCreds.aksk);
   setTimeout(() => ($('#in-apikey').disabled ? $('.modal') : $('#in-apikey')).focus(), 20);
 }
-function closeModal() { $('[data-modal]').hidden = true; if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+function closeModal() {
+  $('[data-modal]').hidden = true;
+  ['#in-apikey', '#in-sid', '#in-skey'].forEach((s) => { $(s).type = 'password'; });
+  if (lastFocus && lastFocus.focus) lastFocus.focus();
+}
+function renderModeTexts() {
+  if (!viaRelay()) return;
+  const warn = $('[data-pages-warn]');
+  warn.classList.add('relay');
+  $('[data-pages-warn-text]').innerHTML = '<b>当前是 GitHub Pages 在线版，已接入 CodeFresh 中转服务。</b>元宝搜索不允许网页直接跨域调用，所以你填的密钥会随每次搜索请求发给中转服务，<b>只用于转发给腾讯云官方接口</b>，中转服务不保存、不写日志；网页里也只放在内存，刷新即清空。';
+  $('[data-aksk-hint]').textContent = '中转服务端用 TC3-HMAC-SHA256 签名后转发，不保存密钥';
+  $('[data-guide-pages]').textContent = '通过 CodeFresh 中转服务调用元宝搜索：填入自己的密钥即可在线体检、检索 CSDN；中转只转发不保存。也可本地运行获得完全离线的密钥处理。';
+  const yb = $('[data-guide-pages-yb]'); yb.className = 'y'; yb.textContent = '元宝搜索（经中转）';
+}
 function readCreds(method) {
   if (method === 'api-key') { const v = $('#in-apikey').value; return v.trim() ? { apiKey: v } : null; }
   const id = $('#in-sid').value; const key = $('#in-skey').value;
@@ -286,7 +345,7 @@ async function runCheck() {
   try { parsed = parseTutorialInput(raw); } catch (e) { state.check = { phase: 'error', error: e.message, report: null }; renderReport(); (state.inputTab === 'url' ? $('#check-url') : $('#check-text')).focus(); return; }
   if (parsed.kind === 'text' && state.inputTab === 'url') { /* 允许在链接框输入文字 */ }
   const btn = $('[data-check-btn]'); btn.disabled = true;
-  const willSearch = state.mode === 'local' && !!conn.active;
+  const willSearch = canSearch() && !!conn.active;
   const steps = [{ k: 'gh', t: '读取 GitHub 官方发布记录与 Changelog' }, { k: 'yb', t: willSearch ? '元宝搜索检索公开资料（1 次调用）' : '未连接元宝搜索，跳过联网检索' }, { k: 'match', t: '比对教程版本、命令与官方变更' }];
   const setStep = (i) => { state.check = { phase: 'checking', steps: steps.map((s, j) => ({ ...s, st: j < i ? 'done' : j === i ? 'doing' : '' })) }; renderReport(); };
   try {
@@ -350,7 +409,7 @@ function realReportHtml(rp) {
         <div class="vcompare"><div class="vbox"><span>教程适用版本</span><b>${esc(rp.tutorialVersion || '未标注')}</b></div>${icon('right')}<div class="vbox new"><span>当前官方稳定版</span><b>${esc(rp.latestStable?.tag || (rp.tool === 'OpenClaw' ? '暂未获取' : '未追踪'))}</b></div></div>
       </div>
       ${ev ? `<div class="yb-strip"><img src="./assets/brand/yuanbao-icon.png" alt="" /><b>元宝搜索</b> · 已检索 ${ev.count} 条公开信息<code>RequestId ${esc(shortId(ev.requestId))}</code></div>`
-        : `<div class="yb-strip off">${icon('github')}<b>GitHub 官方数据</b> · 未使用元宝搜索（${state.mode === 'pages' ? 'Pages 预览' : '未连接'}）</div>`}
+        : `<div class="yb-strip off">${icon('github')}<b>GitHub 官方数据</b> · 未使用元宝搜索（${!canSearch() ? 'Pages 预览' : '未连接'}）</div>`}
       ${rp.tutorialMeta ? `<p class="meta-line">索引中的原文：${ext(rp.tutorialMeta.url, esc(rp.tutorialMeta.title))} · ${esc(rp.tutorialMeta.site || '')} · ${rp.tutorialMeta.date ? `发布于 ${esc(rp.tutorialMeta.date)}` : '日期未知'}</p>` : ''}
       <ul class="rp-reason">${rp.reasons.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>
       ${rp.findings.length ? `<h3 class="sub-h">核验依据 · 原教程 → 官方证据</h3><ul class="findings">${rp.findings.map((f) => `<li class="${f.severity}"><span class="claim">${esc(f.claim)}</span><span class="chg">${esc(f.change)}</span>${ext(f.sourceUrl, `${esc(f.sourceLabel || '来源')} ${icon('arrow')}`)}</li>`).join('')}</ul>` : ''}
@@ -422,7 +481,7 @@ function renderExplore() {
       ${items.length ? `<div class="res-grid">${items.map(resultCard).join('')}</div>` : `<div class="empty"><img src="${A}sleepy-cat.webp" alt="" /><strong>没有找到相关结果</strong><span>换个关键词，或放宽时间筛选。</span></div>`}`;
     return;
   }
-  const notReady = state.mode === 'pages' ? 'Pages 预览不可检索 · 本地运行后可用' : conn.active ? '点击主题即用元宝搜索实时检索' : '连接元宝搜索后即可检索';
+  const notReady = !canSearch() ? 'Pages 预览不可检索 · 本地运行后可用' : conn.active ? '点击主题即用元宝搜索实时检索' : '连接元宝搜索后即可检索';
   el.innerHTML = `<div class="res-head"><h2 id="h-results"><img class="csdn-word" src="./assets/brand/csdn-wordmark.png" alt="CSDN" />开发者精选</h2><small>主题入口，不是预置结果 · ${esc(notReady)}</small></div>
     <div class="topic-grid">${EXPLORE_TOPICS.map((t, i) => `<button class="tcard" type="button" data-explore-topic="${i}"><span class="thumb ${t.topic === 'openclaw' ? '' : t.topic}"><img src="${A}${TOPIC_IMG[t.topic]}.webp" alt="" /></span><span><h3>${esc(t.title)}${icon('chev')}</h3><span class="tags"><span class="tag p">检索 CSDN</span><span class="tag">${esc(t.tag)}</span></span><p>${esc(t.desc)}</p></span></button>`).join('')}</div>`;
 }
@@ -503,10 +562,10 @@ async function init() {
   state.mode = h ? 'local' : 'pages';
   if (h) state.envCreds = h.envCredentials || state.envCreds;
   const chip = $('[data-mode-chip]');
-  chip.textContent = h ? '本地完整模式' : 'GitHub Pages 预览';
+  chip.textContent = h ? '本地完整模式' : RELAY ? 'GitHub Pages · 在线版' : 'GitHub Pages 预览';
   chip.className = `mode-chip ${state.mode}`;
-  chip.title = h ? '同源本地服务 127.0.0.1，元宝搜索可用' : '静态预览：GitHub 版本数据实时可用；元宝搜索需本地运行';
-  renderConn(); renderExplore();
+  chip.title = h ? '同源本地服务 127.0.0.1，元宝搜索可用' : RELAY ? '元宝搜索经 CodeFresh 中转服务调用；中转只转发、不保存密钥' : '静态预览：GitHub 版本数据实时可用；元宝搜索需本地运行';
+  renderModeTexts(); renderConn(); renderExplore();
   loadReleases();
 }
 init();

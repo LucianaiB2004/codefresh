@@ -1,11 +1,11 @@
 // 统一入口：按 method 调用对应方式；限流最多退避重试一次；认证/未开通/参数错误不重试
-import { buildSearchBody } from './request.mjs';
+import { buildSearchBody, CONNECTION_TEST_QUERY } from './request.mjs';
 import { searchWithApiKey } from './wsa-api-key.mjs';
 import { searchWithAkSk } from './wsa-aksk.mjs';
 
 export const METHODS = ['api-key', 'aksk'];
 export const METHOD_LABEL = { 'api-key': '服务 API Key', aksk: '腾讯云标准方式' };
-export const CONNECTION_TEST_QUERY = 'OpenClaw 官方文档 最新稳定版本';
+export { CONNECTION_TEST_QUERY };
 
 export async function runSearch(method, credentials, params, opts = {}) {
   const { sleep = (ms) => new Promise((r) => setTimeout(r, ms)), retryDelayMs = 1200 } = opts;

@@ -525,6 +525,11 @@ svg { width: 18px; height: 18px; flex: none; }
 .pages-warn { display: flex; gap: 10px; align-items: flex-start; background: #fff7e0; border: 1.5px solid #f3d98b; border-radius: 12px; padding: 10px 12px; font-size: 13px; }
 .pages-warn svg { width: 22px; height: 22px; color: #b07a00; }
 .pages-warn p { margin: 0; }
+.pages-warn.relay { background: #eef9e6; border-color: #b9e09a; }
+.pages-warn.relay svg { color: #3f8a1c; }
+.pro-tip { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0 0; padding: 8px 12px; border-radius: 12px; background: var(--purple-soft); color: var(--ink-2); font-size: 12.5px; line-height: 1.6; }
+.pro-tip svg { flex: none; width: 16px; height: 16px; margin-top: 2px; color: var(--purple); }
+.pro-tip code { font-size: 12px; }
 .auth-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .auth-card { border: 1.5px solid var(--line); border-radius: 16px; padding: 14px 16px; display: grid; gap: 6px; background: #fff; align-content: start; }
 .auth-card.active { border-color: var(--ok); box-shadow: 0 0 0 3px rgba(36,168,91,.15); }

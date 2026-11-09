@@ -14,7 +14,7 @@ const PUBLIC_DIR = path.join(ROOT, 'public');
 const SRC_DIR = path.join(ROOT, 'src');
 // 浏览器可加载的通用模块（不含任何签名 / 密钥逻辑）
 export const LIB_ALLOW = new Set([
-  'credentials.mjs', 'openclaw.mjs', 'tutorial-check.mjs', 'tutorial-discover.mjs', 'providers/wsa-response.mjs',
+  'credentials.mjs', 'openclaw.mjs', 'tutorial-check.mjs', 'tutorial-discover.mjs', 'providers/wsa-response.mjs', 'providers/request.mjs',
 ]);
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',

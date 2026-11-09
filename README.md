@@ -44,6 +44,7 @@ npm start            # http://127.0.0.1:4173
 **实测结论：元宝搜索接口不支持浏览器跨域直连。** 以 `Origin: https://lucianaib2004.github.io` 发起 CORS 预检（OPTIONS）返回 HTTP 403，且无 `Access-Control-Allow-Origin`；实际 POST 的响应同样没有该头。因此：
 
 - **Pages 预览**（`npm run build:pages` → `dist/`）：可看完整 UI、实时 GitHub 版本数据（`api.github.com` 支持 CORS）、基于 GitHub Release 的版本对比体检、示例报告（明确标注「示例数据」）。元宝搜索相关功能会提示「需本地运行」，不会假装连接成功。
+- **Pages 在线版（接入中转服务）**：构建时设置 `CODEFRESH_RELAY_URL=https://…`，网页里填自己的密钥即可在线使用教程体检、发现新教程和连接测试。密钥只在页面内存，随每次请求发给 [`relay/`](relay/README.md) 中转服务转发到腾讯云官方接口，中转服务不保存、不记录。想让密钥完全不离开本机，仍然可以用本地完整模式。
 - **本地完整模式**：全部功能可用。
 
 ## 诚实原则
@@ -75,6 +76,7 @@ server/      本地服务（静态文件 + /api/*，仅 127.0.0.1）
 src/         业务模块：providers（两种认证、请求、响应解析）、credentials、openclaw、tutorial-check、tutorial-discover
 public/      前端（原生 HTML/CSS/JS + 像素风素材）
 scripts/     build-pages / scan-secrets / integration / publish.sh
+relay/       元宝搜索中转服务（零依赖，systemd + nginx 部署说明）
 tests/       node:test 单元与服务端测试
 ```
 

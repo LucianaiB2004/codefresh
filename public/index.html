@@ -8,6 +8,7 @@
   <meta name="referrer" content="no-referrer" />
   <link rel="icon" href="./assets/codefresh/codefresh-stamp.webp" type="image/webp" />
   <link rel="stylesheet" href="./styles.css" />
+  <script src="./config.js"></script>
   <script type="module" src="./app.js"></script>
 </head>
 <body>
@@ -295,7 +296,7 @@
             <h2><svg class="h-ico"><use href="#i-flow"/></svg>两种运行模式</h2>
             <div class="modes">
               <div><strong>本地完整模式（推荐）</strong><code>npm start</code><span>打开 http://127.0.0.1:4173 ，教程检测、元宝搜索、版本雷达全部可用。</span><ul class="caps"><li class="y">元宝搜索（两种认证）</li><li class="y">教程体检 + 相关教程</li><li class="y">CSDN 专区检索</li><li class="y">GitHub 版本雷达</li></ul></div>
-              <div><strong>GitHub Pages 预览</strong><span>可看 UI、实时 GitHub 版本数据和示例报告。元宝搜索接口不允许浏览器跨域直连（实测 CORS 预检被拒），线上输入密钥不可用。</span><ul class="caps"><li class="n">元宝搜索</li><li class="y">GitHub 版本对比体检</li><li class="y">版本雷达 / Changelog</li><li class="y">示例报告（已标注）</li></ul></div>
+              <div><strong>GitHub Pages 在线版</strong><span data-guide-pages>可看 UI、实时 GitHub 版本数据和示例报告。元宝搜索接口不允许浏览器跨域直连（实测 CORS 预检被拒），线上输入密钥不可用。</span><ul class="caps"><li class="n" data-guide-pages-yb>元宝搜索</li><li class="y">GitHub 版本对比体检</li><li class="y">版本雷达 / Changelog</li><li class="y">示例报告（已标注）</li></ul></div>
             </div>
           </section>
           <section class="card safe-card">
@@ -305,7 +306,7 @@
               <li>不伪造版本号、热度、阅读量或剩余额度；没有日期就显示「未知」。</li>
               <li>示例报告始终标注「示例数据」。</li>
             </ul>
-            <a class="btn btn-ghost" href="https://console.cloud.tencent.com/wsapi/activity" target="_blank" rel="noopener noreferrer">前往腾讯云查看剩余额度<svg><use href="#i-arrow"/></svg></a>
+            <a class="btn btn-ghost" href="https://console.cloud.tencent.com/wsa" target="_blank" rel="noopener noreferrer">前往腾讯云查看剩余额度<svg><use href="#i-arrow"/></svg></a>
           </section>
         </div>
       </section>
@@ -341,7 +342,7 @@
       </header>
       <div class="pages-warn" data-pages-warn hidden>
         <svg><use href="#i-warn"/></svg>
-        <p><b>当前是 GitHub Pages 静态预览。</b>已实测：元宝搜索接口的浏览器跨域预检（CORS）会被拒绝，所以这里不能直接用密钥搜索。请在本机运行 <code>npm start</code>，打开 http://127.0.0.1:4173 使用完整功能。</p>
+        <p data-pages-warn-text><b>当前是 GitHub Pages 静态预览。</b>已实测：元宝搜索接口的浏览器跨域预检（CORS）会被拒绝，所以这里不能直接用密钥搜索。请在本机运行 <code>npm start</code>，打开 http://127.0.0.1:4173 使用完整功能。</p>
       </div>
       <div class="auth-grid">
         <section class="auth-card" data-auth="api-key">
@@ -373,11 +374,12 @@
           <div class="pw-field"><input id="in-sid" type="password" autocomplete="off" spellcheck="false" placeholder="AKID…" data-cred="secretId" /><button type="button" class="eye" data-eye="in-sid" aria-label="显示 / 隐藏 SecretId"><svg><use href="#i-eye"/></svg></button></div>
           <label for="in-skey">SecretKey</label>
           <div class="pw-field"><input id="in-skey" type="password" autocomplete="off" spellcheck="false" placeholder="SecretKey" data-cred="secretKey" /><button type="button" class="eye" data-eye="in-skey" aria-label="显示 / 隐藏 SecretKey"><svg><use href="#i-eye"/></svg></button></div>
-          <p class="hint"><svg><use href="#i-shield"/></svg>本地服务用 TC3-HMAC-SHA256 签名，密钥不出本机</p>
+          <p class="hint"><svg><use href="#i-shield"/></svg><span data-aksk-hint>本地服务用 TC3-HMAC-SHA256 签名，密钥不出本机</span></p>
           <p class="hint"><svg><use href="#i-doc"/></svg><a href="https://console.cloud.tencent.com/cam/capi" target="_blank" rel="noopener noreferrer">腾讯云 API 密钥管理</a></p>
           <button class="btn btn-soft wide" type="button" data-test="aksk">测试并使用</button>
         </section>
       </div>
+      <p class="pro-tip" data-pro-tip><svg><use href="#i-bolt"/></svg><span><b>小提示</b>：只想快速试用，填「服务 API Key」就够了。建议在腾讯云控制台单独新建一个 Key 专门给 CodeFresh 用，用完随时可以删除。想让密钥完全不离开自己的电脑，可以本地运行 <code>npm start</code>，再打开 http://127.0.0.1:4173 。</span></p>
       <div class="modal-actions">
         <button class="btn btn-ghost" type="button" data-auto-detect>自动检测可用方式（A → B）</button>
         <button class="btn btn-ghost" type="button" data-use-env hidden>使用本机环境变量</button>
@@ -388,7 +390,7 @@
         <span class="fsep" aria-hidden="true"></span>
         <span><svg><use href="#i-help"/></svg>密钥只在内存，刷新即清空</span>
         <span class="fsep" aria-hidden="true"></span>
-        <a href="https://console.cloud.tencent.com/wsapi/activity" target="_blank" rel="noopener noreferrer">查看剩余额度</a>
+        <a href="https://console.cloud.tencent.com/wsa" target="_blank" rel="noopener noreferrer">查看剩余额度</a>
         <button class="btn btn-small" type="button" data-close-modal>稍后设置</button>
       </footer>
     </div>

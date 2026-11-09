@@ -1,0 +1,35 @@
+# /etc/systemd/system/codefresh-relay.service
+[Unit]
+Description=CodeFresh WSA relay (元宝搜索中转服务)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=codefresh
+Group=codefresh
+WorkingDirectory=/opt/codefresh
+ExecStart=/usr/bin/node relay/server.mjs
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=8787
+Environment=TRUST_PROXY=1
+Environment=ALLOWED_ORIGINS=https://lucianaib2004.github.io
+Environment=RATE_LIMIT_PER_MIN=20
+Restart=on-failure
+RestartSec=3
+# 加固：只读文件系统、无额外权限
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6
+LockPersonality=true
+MemoryMax=256M
+
+[Install]
+WantedBy=multi-user.target

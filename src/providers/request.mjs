@@ -1,5 +1,6 @@
 // SearchPro 请求体构造与参数校验（只传 Query + 可选 Site / Freshness，不传极速版不支持的参数）
 export const MAX_QUERY = 120;
+export const CONNECTION_TEST_QUERY = 'OpenClaw 官方文档 最新稳定版本';
 
 export function validateFreshness(f) {
   if (f == null || f === '') return null;
